@@ -1,0 +1,33 @@
+{
+  "version": 1,
+  "output": {
+    "path": "intro-preview.mp4",
+    "width": 1920,
+    "height": 1080,
+    "fps": 30,
+    "crf": 18
+  },
+  "segments": [
+    {
+      "source": "shot-a.mp4",
+      "in": 0.5,
+      "out": 2.75,
+      "speed": 1.0
+    },
+    {
+      "source": "shot-b.mp4",
+      "in": 1.1,
+      "out": 3.2,
+      "speed": 1.0
+    }
+  ],
+  "effects": [
+    {
+      "type": "flash",
+      "at": 2.25,
+      "frames": 2,
+      "style": "white",
+      "intensity": 1.0
+    }
+  ]
+}

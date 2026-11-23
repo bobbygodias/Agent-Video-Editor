@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+
+# Editor outputs / personal media
+*.mp4
+*.mov
+*.mkv
+*.avi
+*.wav
+*.mp3
+*.aac
+*.flac
+# Keep source art and icons trackable; render outputs belong in output/ or renders/.
+/output/
+/renders/
+
+# Temporary output
+*.tmp
+.DS_Store
