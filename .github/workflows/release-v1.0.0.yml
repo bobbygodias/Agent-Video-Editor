@@ -1,0 +1,73 @@
+name: Publish Agent Video Editor v1.0.0
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/release-v1.0.0.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: agent-video-editor-release-v1.0.0
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Validate package contents
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f andrew-video-editor/SKILL.md
+          test -f andrew-video-editor/LICENSE
+          test -f andrew-video-editor/README.md
+          test -f andrew-video-editor/scripts/render_timeline.py
+          test -f RELEASE_NOTES.md
+
+      - name: Package portable ZIP and checksum
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          git archive --format=zip --prefix=andrew-video-editor/ --output=dist/Agent-Video-Editor-v1.0.0.zip HEAD:andrew-video-editor
+          python3 - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile
+          archive = Path("dist/Agent-Video-Editor-v1.0.0.zip")
+          with ZipFile(archive) as zip_file:
+              paths = zip_file.namelist()
+              assert zip_file.testzip() is None
+              assert "andrew-video-editor/SKILL.md" in paths
+              assert "andrew-video-editor/LICENSE" in paths
+              assert not any("__pycache__" in name or name.endswith(".pyc") for name in paths)
+              print(f"Validated {len(paths)} ZIP entries")
+          PY
+          cd dist
+          sha256sum Agent-Video-Editor-v1.0.0.zip > Agent-Video-Editor-v1.0.0.zip.sha256
+
+      - name: Publish GitHub Release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          if gh release view v1.0.0 --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "Release v1.0.0 already exists; preserving it."
+            exit 0
+          fi
+          gh release create v1.0.0 \
+            dist/Agent-Video-Editor-v1.0.0.zip \
+            dist/Agent-Video-Editor-v1.0.0.zip.sha256 \
+            --repo "$GITHUB_REPOSITORY" \
+            --target "$GITHUB_SHA" \
+            --title "Agent Video Editor v1.0.0" \
+            --notes-file RELEASE_NOTES.md
